@@ -221,7 +221,7 @@ MongoClient.connect(uri, function (err, db) {
             res.send(count.toString());
         });
     })
-
+    /*
     app.get('/getGame/:uuid', function (req, res) {
         db.collection('gameData').findOne({ uuid: req.params.uuid }, function (err, obj) {
             var par = 0;
@@ -253,6 +253,130 @@ MongoClient.connect(uri, function (err, db) {
             }
             res.send(obj);
         })
+    })*/
+
+    app.get('/getGame/:uuid', function (req, res) {
+        db.collection("games").aggregate([
+            {
+                $match: {uuid:req.params.uuid}
+            },
+            {
+                $lookup: {
+                    from: "courses",
+                    localField: "courseUuid",
+                    foreignField: "uuid",
+                    as: "course"
+                }
+            },
+            {
+                $unwind: "$course"
+            },
+            {
+                $lookup: {
+                    from: "gamePlayers",
+                    localField: "uuid",
+                    foreignField: "gameUuid",
+                    as: "gamePlayers"
+                }
+            },
+            {
+                $unwind: "$gamePlayers"
+            },
+            {
+                $lookup: {
+                    from: "players",
+                    localField: "gamePlayers.playerUuid",
+                    foreignField: "uuid",
+                    as: "players"
+                }
+            },
+            {
+                $unwind: "$players"
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    //createdAt: { $first:"$createdAt" },
+                    endedAt: { $first: "$endedAt" },
+                    id: { $first: "$id" },
+                    startedAt: { $first: "$startedAt" },
+                    //updatedAt: { $first: "$updatedAt"},
+                    uuid: { $first: "$uuid" },
+                    course: { $first: "$course" },
+                    players: {
+                        $push: {
+                            _id: "$players._id",
+                            uuid: "$players.uuid",
+                            id: "$players.id",
+                            name: "$players.name",
+                            uuid: "$players.uuid",
+                            gamePlayerUuid: "$gamePlayers.uuid"
+                        }
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    from: "gameHoles",
+                    localField: "uuid",
+                    foreignField: "gameUuid",
+                    as: "gameHoles"
+                }
+            },
+            {
+                $unwind: "$gameHoles"
+            },
+            {
+                $lookup: {
+                    from: "scores",
+                    localField: "gameHoles.uuid",
+                    foreignField: "gameHoleUuid",
+                    as: "gameHoles.scores"
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    //createdAt: { $first:"$createdAt" },
+                    endedAt: { $first: "$endedAt" },
+                    id: { $first: "$id" },
+                    startedAt: { $first: "$startedAt" },
+                    //updatedAt: { $first: "$updatedAt"},
+                    uuid: { $first: "$uuid" },
+                    course: { $first: "$course" },
+                    players: { $first: "$players" },
+                    gameHoles: {
+                        $push: {
+                            _id: "$gameHoles._id",
+                            hole: "$gameHoles.hole",
+                            id: "$gameHoles.id",
+                            par: "$gameHoles.par",
+                            uuid: "$gameHoles.uuid",
+                            scores: "$gameHoles.scores"
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    "gameHoles": {
+                        "scores": {
+                            "gameHoleUuid": 0,
+                            "gameUuid": 0
+                        }
+                    }
+                }
+            }/*,
+            {
+                $project: {
+                    "course.par": { $sum: "$gameHoles.par" }
+                }
+            }*/
+
+        ]).toArray(function (err, arr) {
+            console.log(arr[0]);
+            res.send(arr[0]);
+        });
     })
 
     app.get('/getMostRecentGameUuid/:playerUuid', function (req, res) {
