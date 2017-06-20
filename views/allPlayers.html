@@ -1,0 +1,8 @@
+﻿<div class="container">
+    <player-card player="selectedPlayer" class="container"></player-card>
+    <div id="allPlayersSidebar" class="col-2">
+        <div ng-repeat="player in allPlayers">
+            <span ng-click="selectPlayer(player)">{{ player.name }}</span>
+        </div>
+    </div>
+</div>

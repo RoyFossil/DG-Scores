@@ -1,0 +1,11 @@
+{
+  "name": "dg",
+  "version": "1.0.0",
+  "description": "dg service",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "RoyFossil",
+  "license": "ISC"
+}
