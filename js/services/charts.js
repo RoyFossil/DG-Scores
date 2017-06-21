@@ -15,10 +15,6 @@
 
 
         var holesPlayersAndCumulScores = [];
-        // need to push rows that look like this...     [hole number, cumulative score for p1, cumulative score for p2, cumulative score for p3]
-        //                                              [1, 0, -1, 2]
-        //this only sucks because i need to match against gamePlayerUuids because scores are not necessarily in the same order. meh.. won't be too bad.
-
         //gotta loop through every hole, find the score for every gpUuid, and add it in the correct order. ezpz
         for (var i = 0; i < gameData.gameHoles.length; i++) {
             var gameHole = gameData.gameHoles[i];
@@ -50,9 +46,23 @@
         data.addRows(holesPlayersAndCumulScores);
 
         var options = {
-            'title': 'Scores',
-            'width': 1200,
-            'height': 700
+            title: 'Scores',
+            //this should not be hard coded (width and height)
+            //it defaults to the size of the containing elt
+            width: 1000,
+            height: 500,
+            pointSize: 4,
+            hAxis: {
+                title: 'Hole',
+                minValue: 1,
+                maxValue: gameData.gameHoles.length,
+                gridlines: {
+                    count: gameData.gameHoles.length
+                }
+            },
+            vAxis: {
+                title: 'Cumulative Score'
+            }
         };
 
         var chart = new google.visualization.LineChart(elt);
