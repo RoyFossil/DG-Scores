@@ -4,6 +4,7 @@ controller('allPlayersCtrl', function ($scope, dataService) {
     $scope.selectedPlayer = {};
     dataService.getPlayers().done(function (data) {
         $scope.allPlayers = data;
+        $scope.selectPlayer($scope.allPlayers[Math.floor(Math.random() * $scope.allPlayers.length)]);
         $scope.$apply();
     })
 

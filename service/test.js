@@ -374,10 +374,111 @@ MongoClient.connect(uri, function (err, db) {
             }*/
 
         ]).toArray(function (err, arr) {
-            console.log(arr[0]);
-            res.send(arr[0]);
+            //this should be replaced with next, instead of toArray
+            var obj = arr[0]
+            var totalPar = 0;
+            var holesPlayed = {};
+            var totalScore = {};
+            var lastScoreRelToPar = {};
+
+            //prettttty sure gameHoles will always be ordered.... but just to be safe? nah screw it. gonna leave this here tho. something to think about.
+
+            //calculate total scores and number of holes played for each player
+            for (var i = 0; i < obj.gameHoles.length; i++) {
+                //cumulate par over all holes
+                var par = obj.gameHoles[i].par;
+                totalPar += par;
+                //for each hole, loop through scores array 
+                for (var j = 0; j < obj.gameHoles[i].scores.length; j++) {
+                    //get gamePlayerUuid for this score
+                    var gpUuid = obj.gameHoles[i].scores[j].gamePlayerUuid;
+                    //get score value
+                    var score = obj.gameHoles[i].scores[j].score;
+
+                    //calculate score relative to par for this hole
+                    var scoreRelToPar = score - par;
+                    //cumulate score relative to par
+                    if (lastScoreRelToPar.hasOwnProperty(gpUuid)) {
+                        lastScoreRelToPar[gpUuid] += scoreRelToPar;
+                    } else {
+                        lastScoreRelToPar[gpUuid] = scoreRelToPar;
+                    }
+                    //add running score relative to par to the score obj so that it can be accessed again
+                    obj.gameHoles[i].scores[j].scoreRelToPar = lastScoreRelToPar[gpUuid];
+
+                    //increment holes played
+                    if (holesPlayed.hasOwnProperty(gpUuid)) {
+                        holesPlayed[gpUuid]++;
+                    } else {
+                        //if this is the first hole scored for this player, create the entry and set to 1
+                        holesPlayed[gpUuid] = 1;
+                    }
+
+                    //cumulate total score
+                    if (totalScore.hasOwnProperty(gpUuid)) {
+                        totalScore[gpUuid] += score;
+                    } else {
+                        //if this is the first hole scored for this player, create the entry and set to score
+                        totalScore[gpUuid] = score;
+                    }
+                }
+            }
+
+            obj.course.par = par;
+
+            for (var i = 0; i < obj.players.length; i++) {
+                obj.players[i].holesPlayed = holesPlayed[obj.players[i].gamePlayerUuid];
+                obj.players[i].totalScore = totalScore[obj.players[i].gamePlayerUuid];
+                //updated score rel to par
+                obj.players[i].scoreRelToPar = lastScoreRelToPar[obj.players[i].gamePlayerUuid];
+                /* let's change the way this is done. i kinda like just leaving holes played and total score the way that they are
+                // this might mean that i'm looping through twice... may need to change in future iterations, but it's still only O(N).....
+                if (obj.players[i].holesPlayed == obj.gameHoles.length) {
+                    obj.players[i].scoreRelToPar = obj.players[i].totalScore - obj.course.par;
+                } else {
+                    //this works if a player plays from the beginning and then stops at some point
+                    //if a player plays a few holes here and there, this could be inaccurate (only for courses with different pars for holes)
+                    obj.players[i].scoreRelToPar = obj.players[i].totalScore - parThroughNHoles(obj.gameHoles, obj.players[i].holesPlayed);
+                }*/
+                obj.players[i].formattedScore = formatScore(obj.players[i].scoreRelToPar);
+            }
+
+            obj.players.sort(playerCompare);
+
+            res.send(obj);
         });
     })
+
+    function gameHolesCompare(g1, g2) {
+        return g1.hole - g2.hole;
+    }
+
+    function playerCompare(p1, p2) {
+        if (p1.holesPlayed == p2.holesPlayed) {
+            //compare scores
+            return p1.totalScore - p2.totalScore;
+        } else {
+            return p2.holesPlayed - p1.holesPlayed;
+        }
+    }
+
+    function parThroughNHoles(gameHoles, n) {
+        var par = 0;
+        for (var i = 0; i < n; i++) {
+            par += gameHoles[i].par;
+        }
+        return par;
+    }
+
+    function formatScore(score) {
+        if (score > 0) {
+            return '+' + score.toString();
+        } else if (score < 0) {
+            return score.toString();
+        } else {
+            return 'E';
+        }
+    }
 
     app.get('/getMostRecentGameUuid/:playerUuid', function (req, res) {
         db.collection('gamePlayers').aggregate([
@@ -411,14 +512,25 @@ MongoClient.connect(uri, function (err, db) {
     });
 
     //ensures input data isn't changing when the query is being run
+    //NOTE: in the case of a tie for first, both players will pick up the win (as opposed to neither? idk. seems fair)
     function gamesWonHelper(obj, results, checked, length, res) {
         db.collection('scores').aggregate([
             { $match: { gameUuid: obj.gameUuid } },
             { $group: { _id: "$gamePlayerUuid", score: { $sum: "$score" }, holesPlayed: { $sum: 1 } } },
             { $sort: { holesPlayed: -1, score: 1 } }
         ]).toArray(function (err, arr) {
-            if (arr[0]._id == obj.uuid) {
+            if(arr[0]._id == obj.uuid){
                 results.count++;
+            } else {
+                var i=0
+                while (i < arr.length - 1 && arr[i].holesPlayed == arr[i + 1].holesPlayed && arr[i].score == arr[i + 1].score) {
+                    if (arr[i + 1]._id == obj.uuid) {
+                        results.count++;
+                        break;
+                    } else {
+                        i++;
+                    }
+                }
             }
             checked["game" + obj.index] = true;
             if (allGamesChecked(checked)) {

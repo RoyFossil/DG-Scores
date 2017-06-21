@@ -1,6 +1,34 @@
-﻿<div class="card">
-    <h3 class="card-header">{{game.course.name}}</h3>
+﻿<div id="gameCard{{game.id}}"class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <span class="nav-link active" ng-click="navItemClicked('Overview')">Overview</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('Scorecard')">Scorecard</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('Charts')">Charts</span>
+            </li>
+        </ul>
+    </div>
     <div class="card-block">
-        <p class="card-text">This is a game.</p>
+        <div ng-show="selectedTab == 'Overview'">
+            <h4 class="card-title">{{game.course.name}}</h4>
+            <h5 class="card-text">Players</h5>
+            <div>
+                <div ng-repeat="player in game.players" class="row">
+                    <p class="card-text">{{player.name}}</p>
+                    <p class="card-text">   {{player.formattedScore}}</p>
+                </div>
+            </div>
+        </div>
+        <div ng-show="selectedTab == 'Scorecard'">
+            <h4 class="card-title">{{game.course.name}}</h4>
+        </div>
+        <div ng-show="selectedTab == 'Charts'">
+            <h4 class="card-title">{{game.course.name}}</h4>
+            <div id="chart1"></div>
+        </div>
     </div>
 </div>
