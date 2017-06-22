@@ -1,0 +1,29 @@
+﻿<div class="container">
+    <h4 class="text-center">{{game.course.name}}</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Hole</th>
+                <th>Par</th>
+                <th ng-repeat="player in game.players">{{player.name}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{game.gameHoles.length}}</td>
+                <td>{{game.course.totalPar}}</td>
+                <td ng-repeat="player in game.players">{{player.totalScore}}&nbsp;&nbsp;{{player.formattedScore}}</td>
+            </tr>
+            <tr ng-repeat="hole in game.gameHoles">
+                <td>{{hole.hole}}</td>
+                <td>{{hole.par}}</td>
+                <td ng-repeat="score in holeScores[hole.hole-1]">
+                    <div class="row">
+                        <score score="score"></score>
+                        <div class="running-score">&nbsp;{{score.formattedScoreRelToPar}}</div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

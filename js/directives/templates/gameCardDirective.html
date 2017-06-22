@@ -13,18 +13,18 @@
         </ul>
     </div>
     <div class="card-block">
-        <div ng-show="selectedTab == 'Overview'">
+        <div ng-show="selectedTab == 'Overview'" class="container">
             <h4 class="card-title">{{game.course.name}}</h4>
             <h5 class="card-text">Players</h5>
             <div>
                 <div ng-repeat="player in game.players" class="row">
                     <p class="card-text">{{player.name}}</p>
-                    <p class="card-text">   {{player.formattedScore}}</p>
+                    <p class="card-text">&nbsp;&nbsp;{{player.formattedScore}}</p>
                 </div>
             </div>
         </div>
         <div ng-show="selectedTab == 'Scorecard'">
-            <h4 class="card-title">{{game.course.name}}</h4>
+            <score-card game="game"></score-card>
         </div>
         <div ng-show="selectedTab == 'Charts'">
             <h4 class="card-title">{{game.course.name}}</h4>

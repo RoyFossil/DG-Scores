@@ -194,6 +194,7 @@ MongoClient.connect(uri, function (err, db) {
                     }
                     //add running score relative to par to the score obj so that it can be accessed again
                     obj.gameHoles[i].scores[j].scoreRelToPar = lastScoreRelToPar[gpUuid];
+                    obj.gameHoles[i].scores[j].formattedScoreRelToPar = formatScore(lastScoreRelToPar[gpUuid]);
 
                     //increment holes played
                     if (holesPlayed.hasOwnProperty(gpUuid)) {
@@ -213,7 +214,7 @@ MongoClient.connect(uri, function (err, db) {
                 }
             }
 
-            obj.course.par = par;
+            obj.course.totalPar = totalPar;
 
             for (var i = 0; i < obj.players.length; i++) {
                 obj.players[i].holesPlayed = holesPlayed[obj.players[i].gamePlayerUuid];

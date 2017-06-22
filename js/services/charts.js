@@ -32,11 +32,7 @@
                         break;
                     }
                 }
-                if (typeof(score) == 'undefined') {
-                    aRow.push(null);
-                } else {
-                    aRow.push(score);
-                }
+                aRow.push(score);
             }
             //got all the data for that hole, push the hek out of it.
             holesPlayersAndCumulScores.push(aRow);
