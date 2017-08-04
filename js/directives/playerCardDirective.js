@@ -20,8 +20,12 @@
                     dataService.getMostRecentGameUuid(scope.player.uuid).done(function (data) {
                         scope.player.mostRecentGameUuid = data.gameUuid;
                     });
+                    dataService.getCourseCount(scope.player.uuid).done(function (courses) {
+                        scope.player.courseCount = courses;
+                    });
                 }
             });
+
         }
     }
 }])

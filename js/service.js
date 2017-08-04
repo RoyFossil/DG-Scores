@@ -50,6 +50,12 @@ factory('dataService', function ($http) {
         })
     }
 
+    function _getCourseCount(playerUuid) {
+        return $.ajax({
+            url: urlBase + "/getCourseCount/" + playerUuid
+        })
+    }
+
     return {
         getPlayers: _getPlayers,
         getCourses: _getCourses,
@@ -58,6 +64,7 @@ factory('dataService', function ($http) {
         getNumGamesPlayed: _getNumGamesPlayed,
         getNumGamesWon: _getNumGamesWon,
         getGame: _getGame,
-        getMostRecentGameUuid: _getMostRecentGameUuid
+        getMostRecentGameUuid: _getMostRecentGameUuid,
+        getCourseCount: _getCourseCount
     }
 });

@@ -42,7 +42,51 @@ MongoClient.connect(uri, function (err, db) {
         db.collection('gamePlayers').count({ playerUuid: req.params.uuid }, function (err, count) {
             res.send(count.toString());
         });
-    })
+    });
+
+    //playerUuid in
+    app.get('/getCourseCount/:uuid', function (req, res) {
+        db.collection("gamePlayers").aggregate([
+            {
+                $match: {playerUuid: req.params.uuid}
+            },
+            {
+                $lookup: {
+                    from: "games",
+                    localField: "gameUuid",
+                    foreignField: "uuid",
+                    as: "games"
+                }
+            },
+            {
+                $unwind: "$games"
+            },
+            {
+                $group: {
+                    _id: "$games.courseUuid",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { count: -1 }
+            },
+            {
+                $lookup: {
+                    from: "courses",
+                    localField: "_id",
+                    foreignField: "uuid",
+                    as: "course"
+                }
+            },
+            {
+                $unwind: "$course"
+            }
+        ]).toArray(function (err, arr) {
+            console.log("test2");
+            console.log(arr);
+            res.send(arr);
+        });
+    });
 
     app.get('/getGame/:uuid', function (req, res) {
         db.collection("games").aggregate([
@@ -171,6 +215,8 @@ MongoClient.connect(uri, function (err, db) {
             var lastScoreRelToPar = {};
 
             //prettttty sure gameHoles will always be ordered.... but just to be safe? nah screw it. gonna leave this here tho. something to think about.
+            //lol no they won't
+            obj.gameHoles.sort(gameHolesCompare);
 
             //calculate total scores and number of holes played for each player
             for (var i = 0; i < obj.gameHoles.length; i++) {
@@ -304,7 +350,8 @@ MongoClient.connect(uri, function (err, db) {
             if(arr[0]._id == obj.uuid){
                 results.count++;
             } else {
-                var i=0
+                var i = 0
+                //this is the tie logic
                 while (i < arr.length - 1 && arr[i].holesPlayed == arr[i + 1].holesPlayed && arr[i].score == arr[i + 1].score) {
                     if (arr[i + 1]._id == obj.uuid) {
                         results.count++;
