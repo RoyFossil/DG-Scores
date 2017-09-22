@@ -1,8 +1,10 @@
 var MongoClient = require('mongodb').MongoClient;
 var express = require('express');
 var cors = require('cors');
+var bodyParser = require('body-parser');
 var app = express();
-app.use(cors())
+app.use(cors());
+app.use(bodyParser.json());
 
 var uri = "mongodb://RoyFossil:DGCluster83@discgolf-shard-00-00-vzyvi.mongodb.net:27017,discgolf-shard-00-01-vzyvi.mongodb.net:27017,discgolf-shard-00-02-vzyvi.mongodb.net:27017/DiscGolf?ssl=true&replicaSet=DiscGolf-shard-0&authSource=admin";
 MongoClient.connect(uri, function (err, db) {
@@ -20,6 +22,14 @@ MongoClient.connect(uri, function (err, db) {
 
     app.get('/getCourses', function (req, res) {
         db.collection('courses').find({}, function (err, cursor) {
+            cursor.toArray(function (err, arr) {
+                res.send(arr);
+            });
+        });
+    });
+
+    app.get('/getGames', function (req, res) {
+        db.collection('games').find({}, function (err, cursor) {
             cursor.toArray(function (err, arr) {
                 res.send(arr);
             });
@@ -378,6 +388,29 @@ MongoClient.connect(uri, function (err, db) {
         }
         return true;
     }
+
+
+    //functions for posting new data
+    app.post('/addNewCourses', function (req, res) {
+        db.collection('courses').insertMany(req.body, function (err, records) {
+            if (err) throw err;
+            res.send(records.length == req.body.length);
+        });
+    });
+
+    app.post('/addNewHoles', function (req, res) {
+        db.collection('holes').insertMany(req.body, function (err, records) {
+            if (err) throw err;
+            res.send(records.length == req.body.length);
+        });
+    });
+
+
+    /*
+    db.collection('holes').insertMany(holes, function (err, records) {
+        if (err) throw err;
+    });*/
+
 
     //start the server
     var server = app.listen(50000, "127.0.0.1", function () {
