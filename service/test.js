@@ -4,7 +4,7 @@ var cors = require('cors');
 var bodyParser = require('body-parser');
 var app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '50mb'}));
 
 var uri = "mongodb://RoyFossil:DGCluster83@discgolf-shard-00-00-vzyvi.mongodb.net:27017,discgolf-shard-00-01-vzyvi.mongodb.net:27017,discgolf-shard-00-02-vzyvi.mongodb.net:27017/DiscGolf?ssl=true&replicaSet=DiscGolf-shard-0&authSource=admin";
 MongoClient.connect(uri, function (err, db) {
@@ -45,6 +45,25 @@ MongoClient.connect(uri, function (err, db) {
     app.get('/getCourse/:id', function (req, res) {
         db.collection('courses').findOne({ id: req.params.id }, function (err, obj) {
             res.send(obj);
+        });
+    });
+
+    app.get('/getCourseWithHoles/:uuid', function (req, res) {
+        db.collection('courses').aggregate([
+            {
+                $match: {uuid: req.params.uuid}
+            },
+            {
+                $lookup: {
+                    from: "holes",
+                    localField: "uuid",
+                    foreignField: "courseUuid",
+                    as: "holes"
+                }
+            }
+        ]).toArray(function (err, arr) {
+            console.log(arr[0]);
+            res.send(arr[0]);
         });
     });
 
@@ -405,11 +424,29 @@ MongoClient.connect(uri, function (err, db) {
         });
     });
 
+    app.post('/addNewPlayers', function (req, res) {
+        db.collection('players').insertMany(req.body, function (err, records) {
+            if (err) throw err;
+            res.send(records.length == req.body.length);
+        });
+    });
 
-    /*
-    db.collection('holes').insertMany(holes, function (err, records) {
-        if (err) throw err;
-    });*/
+    app.post('/addNewGames', function (req, res) {
+        //no dependencies, add em all at once
+        db.collection('games').insertMany(req.body.games, function (err, records) {
+            if (err) throw err;
+        });
+        db.collection('gamePlayers').insertMany(req.body.gamePlayers, function (err, records) {
+            if (err) throw err;
+        });
+        db.collection('gameHoles').insertMany(req.body.gameHoles, function (err, records) {
+            if (err) throw err;
+        });
+        db.collection('scores').insertMany(req.body.scores, function (err, records) {
+            if (err) throw err;
+            res.send(records.length == req.body.scores.length);
+        });
+    });
 
 
     //start the server

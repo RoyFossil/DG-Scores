@@ -32,6 +32,12 @@ factory('dataService', function ($http) {
         })
     }
 
+    function _getCourseWithHoles(id) {
+        return $.ajax({
+            url: urlBase + "/getCourseWithHoles/" + id
+        })
+    }
+
     function _getNumGamesPlayed(uuid) {
         return $.ajax({
             url: urlBase + "/getNumGamesPlayed/" + uuid
@@ -80,18 +86,39 @@ factory('dataService', function ($http) {
         })
     }
 
+    function _addNewPlayers(players) {
+        return $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(players),
+            url: urlBase + "/addNewPlayers"
+        })
+    }
+
+    function _addNewGames(gameData) {
+        return $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(gameData),
+            url: urlBase + "/addNewGames"
+        })
+    }
+
     return {
         getPlayers: _getPlayers,
         getCourses: _getCourses,
         getGames: _getGames,
         getPlayer: _getPlayer,
         getCourse: _getCourse,
+        getCourseWithHoles: _getCourseWithHoles,
         getNumGamesPlayed: _getNumGamesPlayed,
         getNumGamesWon: _getNumGamesWon,
         getGame: _getGame,
         getMostRecentGameUuid: _getMostRecentGameUuid,
         getCourseCount: _getCourseCount,
         addNewCourses: _addNewCourses,
-        addNewHoles: _addNewHoles
+        addNewHoles: _addNewHoles,
+        addNewPlayers: _addNewPlayers,
+        addNewGames: _addNewGames
     }
 });
