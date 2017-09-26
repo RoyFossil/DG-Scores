@@ -23,8 +23,38 @@
                     dataService.getCourseCount(scope.player.uuid).done(function (courses) {
                         scope.player.courseCount = courses;
                     });
+                    if (scope.selectedTab == 'Games') {
+                        initGames();
+                    }
                 }
             });
+
+            //default to overview tab
+            scope.selectedTab = 'Overview';
+
+            //change the active tab, also run tab specific code, if it exists
+            scope.navItemClicked = function (name) {
+                //pushes change for body of card
+                scope.selectedTab = name;
+                //get all link items
+                var linkItems = $("#playerCard" + scope.player.id + " span.nav-link");
+                linkItems.removeClass("active");
+                //make the selected link item active
+                linkItems.filter(":contains('" + name + "')").addClass("active");
+
+
+                //tab specific code
+                if (name == "All Games") {
+                    initAllGames();
+                }
+            }
+
+            function initAllGames() {
+                dataService.getAllGamesForPlayer(scope.player.uuid).then(function (res) {
+                    scope.player.games = res;
+                    scope.$apply();
+                })
+            }
 
         }
     }

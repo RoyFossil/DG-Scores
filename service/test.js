@@ -111,11 +111,91 @@ MongoClient.connect(uri, function (err, db) {
                 $unwind: "$course"
             }
         ]).toArray(function (err, arr) {
-            console.log("test2");
-            console.log(arr);
             res.send(arr);
         });
     });
+
+    app.get('/getAllGamesForPlayer/:uuid', function (req, res) {
+        db.collection("gamePlayers").aggregate([
+            {
+                $match: {playerUuid: req.params.uuid}
+            },
+            {
+                $project: { "gameUuid": 1 }
+            },
+            {
+                $lookup: {
+                    from: "games",
+                    localField: "gameUuid",
+                    foreignField: "uuid",
+                    as: "game"
+                }
+            },
+            {
+                $unwind: "$game"
+            },
+            {
+                $replaceRoot: { newRoot: "$game" }
+            },
+            {
+                $lookup: {
+                    from: "courses",
+                    localField: "courseUuid",
+                    foreignField: "uuid",
+                    as: "course"
+                }
+            },
+            {
+                $project: { "uuid": 1, "course": 1, "startedAt": 1, "endedAt": 1 }
+            },
+            {
+                $unwind: "$course"
+            },
+            {
+                $lookup: {
+                    from: "gamePlayers",
+                    localField: "uuid",
+                    foreignField: "gameUuid",
+                    as: "players"
+                }
+            },
+            {
+                $unwind: "$players"
+            },
+            {
+                $lookup: {
+                    from: "players",
+                    localField: "players.playerUuid",
+                    foreignField: "uuid",
+                    as: "players.name"
+                }
+            },
+            {
+                $unwind: "$players.name"
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    uuid: { $first: "$uuid"},
+                    course: { $first: "$course" },
+                    startedAt: { $first: "$startedAt"},
+                    endedAt: { $first: "$endedAt" },
+                    players: {
+                        $push: {
+                            name: "$players.name.name",
+                            uuid: "$players.playerUuid",
+                            gamePlayerUuid: "$players.uuid"
+                        }
+                    }
+                }
+            },
+            {
+                $sort: { startedAt: -1}
+            }
+        ]).toArray(function (err, arr) {
+            res.send(arr);
+        })
+    })
 
     app.get('/getGame/:uuid', function (req, res) {
         db.collection("games").aggregate([
