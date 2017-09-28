@@ -118,7 +118,7 @@ MongoClient.connect(uri, function (err, db) {
     app.get('/getAllGamesForPlayer/:uuid', function (req, res) {
         db.collection("gamePlayers").aggregate([
             {
-                $match: {playerUuid: req.params.uuid}
+                $match: { playerUuid: req.params.uuid }
             },
             {
                 $project: { "gameUuid": 1 }
@@ -176,9 +176,9 @@ MongoClient.connect(uri, function (err, db) {
             {
                 $group: {
                     _id: "$_id",
-                    uuid: { $first: "$uuid"},
+                    uuid: { $first: "$uuid" },
                     course: { $first: "$course" },
-                    startedAt: { $first: "$startedAt"},
+                    startedAt: { $first: "$startedAt" },
                     endedAt: { $first: "$endedAt" },
                     players: {
                         $push: {
@@ -190,11 +190,138 @@ MongoClient.connect(uri, function (err, db) {
                 }
             },
             {
-                $sort: { startedAt: -1}
+                $sort: { startedAt: -1 }
             }
         ]).toArray(function (err, arr) {
             res.send(arr);
-        })
+        });
+    });
+
+    app.get('/getBestGamesForPlayer/:uuid', function (req, res) {
+        db.collection("gamePlayers").aggregate([
+            {
+                $match: {playerUuid: req.params.uuid}
+            },
+            {
+                $project: { "gameUuid": 1}
+            },
+            {
+                $lookup: {
+                    from: "games",
+                    localField: "gameUuid",
+                    foreignField: "uuid",
+                    as: "game"
+                }
+            },
+            {
+                $unwind: "$game"
+                //okay so right here we have every game that this player has played in
+                //we need to sort by course? maybe? or is it too soon.. i don't know.
+            },
+            {
+                $replaceRoot: { newRoot: "$game" }
+            },
+            {
+                $group: {
+                    _id: "$courseUuid",
+                    game: {
+                        $push: {
+                            uuid: "$uuid",
+                            createdAt: "$createdAt"
+                        }
+                    }
+                }
+            },
+            {
+                $unwind: "$game"
+            },
+            {
+                $lookup: {
+                    from: "gamePlayers",
+                    localField: "game.uuid",
+                    foreignField: "gameUuid",
+                    as: "game.gamePlayer"
+                }
+            },
+            {
+                $unwind: "$game.gamePlayer"
+            },
+            {
+                $match: { "game.gamePlayer.playerUuid": req.params.uuid }
+                //HYPE. so here we have the gamePlayer for every game that a player has played in
+                //grouped by course
+                //now to find the score for each game player then sort and take the top one (bottom one?)
+            },
+            {
+                $lookup: {
+                    from: "scores",
+                    localField: "game.gamePlayer.uuid",
+                    foreignField: "gamePlayerUuid",
+                    as: "game.gamePlayer.score"
+
+                }
+            },
+            {
+                $unwind: "$game.gamePlayer.score"
+                //so this is gonna be a lot... like a lot a lot
+                //maybe like 235*18 docs here for me so like in the realm of like 5000 docs.
+            },
+            {
+                $lookup: {
+                    from: "gameHoles",
+                    localField: "game.gamePlayer.score.gameHoleUuid",
+                    foreignField: "uuid",
+                    as: "game.gamePlayer.score.gameHoleInfo"
+                }
+            },
+            {
+                $unwind: "$game.gamePlayer.score.gameHoleInfo"
+            },
+            {
+                //okay this /might/ be heckin clever
+                $group: {
+                    _id: "$game.uuid",
+                    courseUuid: { $first: "$_id" },
+                    createAt: { $first: "$game.createdAt"},
+                    score: {
+                        $sum: "$game.gamePlayer.score.score"
+                    },
+                    par: {
+                        $sum: "$game.gamePlayer.score.gameHoleInfo.par"
+                    }
+                }
+            },
+            {
+                $sort: {
+                    //first sort by created date, desceding (newer games higher priority)
+                    createdAt: -1,
+                    //then sort by score, asceding
+                    score: 1
+                }
+            },
+            {
+                $group: {
+                    _id: "$courseUuid",
+                    par: { $first: "$par" },
+                    score: { $first: "$score" },
+                    createdAt: { $first: "$createdAt" },
+                    gameUuid: { $first: "$_id"}
+                }
+            },
+            {
+                $lookup: {
+                    from: "courses",
+                    localField: "_id",
+                    foreignField: "uuid",
+                    as: "courseInfo"
+                }
+            },
+            {
+                $unwind: "$courseInfo"
+            }
+        ]).toArray(function (err, arr) {
+            res.send(arr);
+        });
     })
 
     app.get('/getGame/:uuid', function (req, res) {

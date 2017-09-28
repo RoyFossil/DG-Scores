@@ -23,8 +23,11 @@
                     dataService.getCourseCount(scope.player.uuid).done(function (courses) {
                         scope.player.courseCount = courses;
                     });
-                    if (scope.selectedTab == 'Games') {
-                        initGames();
+                    if (scope.selectedTab == 'All Games') {
+                        initAllGames();
+                    }
+                    if (scope.selectedTab == 'Best Games') {
+                        initBestGames();
                     }
                 }
             });
@@ -47,11 +50,22 @@
                 if (name == "All Games") {
                     initAllGames();
                 }
+
+                if (name == "Best Games") {
+                    initBestGames();
+                }
             }
 
             function initAllGames() {
                 dataService.getAllGamesForPlayer(scope.player.uuid).then(function (res) {
                     scope.player.games = res;
+                    scope.$apply();
+                })
+            }
+
+            function initBestGames() {
+                dataService.getBestGamesForPlayer(scope.player.uuid).then(function (res) {
+                    scope.player.bestGames = res;
                     scope.$apply();
                 })
             }

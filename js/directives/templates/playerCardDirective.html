@@ -5,7 +5,10 @@
                 <span class="nav-link active" ng-click="navItemClicked('Overview')">Overview</span>
             </li>
             <li class="nav-item">
-                <span class="nav-link" ng-click="navItemClicked('Games')">Games</span>
+                <span class="nav-link" ng-click="navItemClicked('All Games')">All Games</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('Best Games')">Best Games</span>
             </li>
         </ul>
     </div>
@@ -18,9 +21,13 @@
             <p class="card-text">Most Played Course: {{player.courseCount[0].course.name}}</p>
             <a href="/games/{{player.mostRecentGameUuid}}" class="btn btn-primary">Most Recent Game</a>
         </div>
-        <div ng-show="selectedTab == 'Games'" class="container">
+        <div ng-show="selectedTab == 'All Games'" class="container">
             <h3>{{player.name}}</h3>
             <div class="container" ng-repeat="game in player.games" quick-look-game game="game" curr-player="player"></div>
+        </div>
+        <div ng-show="selectedTab == 'Best Games'" class="container">
+            <h3>{{player.name}}</h3>
+            <div class="container" ng-repeat="game in player.bestGames" quick-look-game game="game" curr-player="player"></div>
         </div>
     </div>
 </div>
