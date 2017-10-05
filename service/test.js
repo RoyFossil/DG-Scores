@@ -227,7 +227,7 @@ MongoClient.connect(uri, function (err, db) {
                     game: {
                         $push: {
                             uuid: "$uuid",
-                            createdAt: "$createdAt"
+                            startedAt: "$startedAt"
                         }
                     }
                 }
@@ -282,21 +282,27 @@ MongoClient.connect(uri, function (err, db) {
                 $group: {
                     _id: "$game.uuid",
                     courseUuid: { $first: "$_id" },
-                    createAt: { $first: "$game.createdAt"},
+                    startedAt: { $first: "$game.startedAt"},
                     score: {
                         $sum: "$game.gamePlayer.score.score"
                     },
                     par: {
                         $sum: "$game.gamePlayer.score.gameHoleInfo.par"
+                    },
+                    holesPlayed: {
+                        $sum: 1
                     }
                 }
             },
             {
                 $sort: {
-                    //first sort by created date, desceding (newer games higher priority)
-                    createdAt: -1,
-                    //then sort by score, asceding
-                    score: 1
+                    //okay so i could have sworn that i read online that the field sort priority was the other way... but whatever......
+                    //this field is the one we're most worried about.  any game where you play more holes than another is a better game.
+                    holesPlayed: -1,
+                    //then sort by score, of course.
+                    score: 1,
+                    //lastly sort by created date, desceding (newer games higher priority, even if i have multiple games with my best score, only return the most recent one)
+                    startedAt: -1
                 }
             },
             {
@@ -304,8 +310,9 @@ MongoClient.connect(uri, function (err, db) {
                     _id: "$courseUuid",
                     par: { $first: "$par" },
                     score: { $first: "$score" },
-                    createdAt: { $first: "$createdAt" },
-                    gameUuid: { $first: "$_id"}
+                    startedAt: { $first: "$startedAt" },
+                    uuid: { $first: "$_id" },
+                    holesPlayed: { $first: "$holesPlayed" }
                 }
             },
             {
@@ -313,11 +320,11 @@ MongoClient.connect(uri, function (err, db) {
                     from: "courses",
                     localField: "_id",
                     foreignField: "uuid",
-                    as: "courseInfo"
+                    as: "course"
                 }
             },
             {
-                $unwind: "$courseInfo"
+                $unwind: "$course"
             }
         ]).toArray(function (err, arr) {
             res.send(arr);
