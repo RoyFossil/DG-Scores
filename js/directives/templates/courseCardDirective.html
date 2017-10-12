@@ -1,0 +1,35 @@
+﻿<div id="courseCard{{course.id}}" class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <span class="nav-link active" ng-click="navItemClicked('Overview')">Overview</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('All Games')">All Games <span class="badge badge-primary">{{gameCount == 0 ? "..." : gameCount}}</span></span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('Leaderboard')">Leaderboard</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('Charts')">Charts</span>
+            </li>
+        </ul>
+    </div>
+    <div class="card-block">
+        <div ng-show="selectedTab == 'Overview'" class="container">
+            <h4 class="card-title">{{course.name}}</h4>
+        </div>
+        <div ng-show="selectedTab == 'All Games'" class="container">
+            <h4 class="card-title">{{course.name}}</h4>
+            <div ng-repeat="game in allGames" quick-look-game game="game"></div>
+        </div>
+        <div ng-show="selectedTab == 'Leaderboard'" class="container">
+            <h4 class="card-title">{{course.name}}</h4>
+            <div ng-repeat="player in leaderboard"></div>
+        </div>
+        <div ng-show="selectedTab == 'Charts'" class="container">
+            <h4 class="card-title">{{course.name}}</h4>
+            <div id="chart1"></div>
+        </div>
+    </div>
+</div>

@@ -8,6 +8,6 @@ controller('allCoursesCtrl', function ($scope, dataService) {
 
 
     $(function () {
-        $('#coursesCarousel').carousel(0)
+        $('#coursesCarousel').carousel(0);
     });
 });

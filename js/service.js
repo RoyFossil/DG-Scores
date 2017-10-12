@@ -50,6 +50,18 @@ factory('dataService', function ($http) {
         })
     }
 
+    function _getGameUuidsForCourse(uuid) {
+        return $.ajax({
+            url: urlBase + "/getGameUuidsForCourse/" + uuid
+        })
+    }
+
+    function _getGameInfoFromUuids(uuids) {
+        return $.ajax({
+            url: urlBase + "/getGameInfoFromUuids/" + JSON.stringify(uuids)
+        })
+    }
+
     function _getNumGamesPlayed(uuid) {
         return $.ajax({
             url: urlBase + "/getNumGamesPlayed/" + uuid
@@ -125,6 +137,8 @@ factory('dataService', function ($http) {
         getPlayer: _getPlayer,
         getCourse: _getCourse,
         getCourseWithHoles: _getCourseWithHoles,
+        getGameUuidsForCourse: _getGameUuidsForCourse,
+        getGameInfoFromUuids: _getGameInfoFromUuids,
         getNumGamesPlayed: _getNumGamesPlayed,
         getNumGamesWon: _getNumGamesWon,
         getGame: _getGame,

@@ -15,6 +15,7 @@
     <div class="card-block">
         <div ng-show="selectedTab == 'Overview'" class="container">
             <h4 class="card-title">{{game.course.name}}</h4>
+            <span class="container">{{game.date}}</span>
             <h5 class="card-text">Players</h5>
             <div class="container">
                 <div ng-repeat="player in game.players" class="row">
@@ -28,6 +29,7 @@
         </div>
         <div ng-show="selectedTab == 'Charts'" class="container">
             <h4 class="card-title">{{game.course.name}}</h4>
+            <span>{{game.date}}</span>
             <div id="chart1"></div>
         </div>
     </div>
