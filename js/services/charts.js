@@ -65,8 +65,49 @@
         chart.draw(data, options);
     }
 
+    function _daysOfWeekForCourse(elt, courseData) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Day of the Week');
+        data.addColumn('number', 'Count');
+
+        var daysOfWeekAndCount = [];
+
+        //data.date = moment(parseInt(data.startedAt)).format("ddd, MMM D Y h:mm A");
+        //sun=0, sat=6
+        daysOfTheWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        var allIndividualDays = courseData.map(x => moment(parseInt(x.startedAt)).day());
+        var countedDaysOfWeek = [0,0,0,0,0,0,0];
+        for (var i = 0; i < allIndividualDays.length; i++) {
+            countedDaysOfWeek[allIndividualDays[i]]++;
+        }
+
+        for (var i = 0; i < 7; i++) {
+            var row = [];
+            row.push(daysOfTheWeek[i]);
+            row.push(countedDaysOfWeek[i]);
+            daysOfWeekAndCount.push(row);
+        }
+
+        data.addRows(daysOfWeekAndCount);
+
+        var options = {
+            title: 'Days of the Week',
+            //this should not be hard coded (width and height)
+            //it defaults to the size of the containing elt
+            width: 1000,
+            height: 500
+        };
+
+        var chart = new google.visualization.PieChart(elt);
+        chart.draw(data, options);
+    }
 
     return {
-        scoresRelToParForGame: _scoresRelToParForGame
+        scoresRelToParForGame: _scoresRelToParForGame,
+        daysOfWeekForCourse: _daysOfWeekForCourse
     }
 });

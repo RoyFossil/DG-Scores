@@ -22,5 +22,9 @@ angular.module('app').config(['$routeProvider', '$locationProvider', function ($
         templateUrl: 'views/games.html',
         controller: 'gamesCtrl'
     }).
+    when('/calendar', {
+        templateUrl: 'views/calendar.html',
+        controller: 'calendarCtrl'
+    }).
     otherwise('/');
 }]);

@@ -18,6 +18,8 @@
     <div class="card-block">
         <div ng-show="selectedTab == 'Overview'" class="container">
             <h4 class="card-title">{{course.name}}</h4>
+            <h2>Median Game Duration</h2>
+            <span>{{medianGameDuration}}</span>
         </div>
         <div ng-show="selectedTab == 'All Games'" class="container">
             <h4 class="card-title">{{course.name}}</h4>
@@ -30,6 +32,7 @@
         <div ng-show="selectedTab == 'Charts'" class="container">
             <h4 class="card-title">{{course.name}}</h4>
             <div id="chart1"></div>
+            <div id="chart2"></div>
         </div>
     </div>
 </div>
