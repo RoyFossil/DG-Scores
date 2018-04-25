@@ -106,8 +106,39 @@
         chart.draw(data, options);
     }
 
+    function _scoresOverTimeForCourse(elt, courseScoresData) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Date');
+        data.addColumn('number', 'Score');
+
+        for (var i = 0; i < courseScoresData.length; i++) {
+            var aGame = courseScoresData[i];
+            var aDate = new Date(parseInt(aGame.startedAt));
+            for (var j = 0; j < aGame.players.length; j++) {
+                var aPlayer = aGame.players[j];
+                if (aPlayer.holesPlayed == aGame.gameHoles.length) {
+                    data.addRow([aDate, aPlayer.scoreRelToPar]);
+                }
+            }
+        }
+
+        var options = {
+            title: 'Scores',
+            width: 1000,
+            height: 600
+        }
+
+        var chart = new google.visualization.ScatterChart(elt);
+        chart.draw(data, options);
+    }
+
     return {
         scoresRelToParForGame: _scoresRelToParForGame,
-        daysOfWeekForCourse: _daysOfWeekForCourse
+        daysOfWeekForCourse: _daysOfWeekForCourse,
+        scoresOverTimeForCourse: _scoresOverTimeForCourse
     }
 });

@@ -1,0 +1,13 @@
+﻿<h5>{{lb.title}}</h5>
+<div ng-repeat="item in lb.items ">
+    <div class="row">
+        <div class="col-xs-2">{{$index + 1}}</div>
+        <div class="col-xs-8">
+            <a ng-if="item.isLink" href="{{item.href}}">{{item.name}}</a>
+            <span ng-if="!item.isLink">{{item.name}}</span>
+        </div>
+        <div class="col-xs-2">
+            <span>{{item.info}}</span>
+        </div>
+    </div>
+</div>

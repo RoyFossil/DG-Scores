@@ -7,12 +7,22 @@ controller('calendarCtrl', function ($scope, dataService) {
         $.each(allGames, function (index, game) {
             game.title = "issa game";
             game.start = parseInt(game.startedAt);
+            game.url = "/games/" + game.uuid;
         })
 
 
         $("#calendar").fullCalendar({
             events: allGames,
-            timezone: 'local'
+            timezone: 'local'/*,
+            eventClick: function (event) {
+                //window.location.href = "games/" + event.uuid;
+                /*window.history.pushState({}, null, "/games/" + event.uuid);
+                window.location.reload(true);
+                var aTag = document.createElement('a');
+                aTag.setAttribute('href', "/games/" + event.uuid);
+                aTag.click();
+
+            }*/
         });
     });
 });

@@ -27,7 +27,9 @@
         </div>
         <div ng-show="selectedTab == 'Leaderboard'" class="container">
             <h4 class="card-title">{{course.name}}</h4>
-            <div ng-repeat="player in leaderboard"></div>
+            <div ng-repeat="lb in leaderboards">
+                <leaderboard lb="lb"></leaderboard>
+            </div>
         </div>
         <div ng-show="selectedTab == 'Charts'" class="container">
             <h4 class="card-title">{{course.name}}</h4>

@@ -7,8 +7,10 @@ app.use(cors());
 app.use(bodyParser.json({limit: '50mb'}));
 
 var uri = "mongodb://RoyFossil:DGCluster83@discgolf-shard-00-00-vzyvi.mongodb.net:27017,discgolf-shard-00-01-vzyvi.mongodb.net:27017,discgolf-shard-00-02-vzyvi.mongodb.net:27017/DiscGolf?ssl=true&replicaSet=DiscGolf-shard-0&authSource=admin";
-MongoClient.connect(uri, function (err, db) {
+MongoClient.connect(uri, function (err, client) {
     if (err) throw err;
+
+    var db = client.db('DiscGolf');
 
     //all the functions
 
