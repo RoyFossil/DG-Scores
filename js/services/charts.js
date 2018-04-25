@@ -1,6 +1,6 @@
 ﻿angular.module('app.services').factory('charts', function () {
     
-    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.load('current', { 'packages': ['corechart', 'scatter'] });
 
     function _scoresRelToParForGame(elt, gameData) {
         if (elt instanceof jQuery) {
@@ -136,9 +136,73 @@
         chart.draw(data, options);
     }
 
+    function _holeDifficulty(elt, holesData) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('number', 'Hole');
+        data.addColumn('number', 'Par');
+        data.addColumn('number', 'Avg');
+        data.addColumn('number', 'Scores');
+
+        var allScores = {};
+        //loop through each game
+        for (var i = 0; i < holesData.length; i++) {
+            //loop through each gameHole
+            for (var j = 0; j < holesData[i].gameHoles.length; j++) {
+                var aGameHole = holesData[i].gameHoles[j];
+                //add par info.  This will, for each hole, make for a par entry for every game
+                //it is possible that a par could have changed, so that might actually be good
+                data.addRow([aGameHole.hole, aGameHole.par, null, null]);
+                for (var k = 0; k < aGameHole.scores.length; k++) {
+                    var aScore = aGameHole.scores[k];
+                    //add an individual score
+                    data.addRow([aGameHole.hole, null, null, aScore.score]);
+                    if (allScores[aGameHole.hole]) {
+                        allScores[aGameHole.hole].sumScores += aScore.score;
+                        allScores[aGameHole.hole].count++;
+                    } else {
+                        allScores[aGameHole.hole] = {
+                            sumScores: aScore.score,
+                            count: 1
+                        }
+                    }
+                }
+            }
+        }
+
+        //get avg for each hole
+        Object.keys(allScores).forEach(function (hole, index) {
+            var avg = allScores[hole].sumScores / allScores[hole].count;
+            data.addRow([parseInt(hole), null, avg, null]);
+        });
+
+
+
+
+        var options = {
+            title: 'Hole scores',
+            width: 1000,
+            height: 600,
+            series: {
+                0: { pointShape: 'square', pointSize: 20 },  //par
+                1: { pointShape: 'star', pointSize: 20 },  //avg
+                2: { pointShape: 'circle' }   //scores
+            }
+        }
+
+        var chart = new google.visualization.ScatterChart(elt);
+        //var chart = new google.charts.Scatter(elt);
+        chart.draw(data, options);
+        //chart.draw(data, google.charts.Scatter.convertOptions(options));
+    }
+
     return {
         scoresRelToParForGame: _scoresRelToParForGame,
         daysOfWeekForCourse: _daysOfWeekForCourse,
-        scoresOverTimeForCourse: _scoresOverTimeForCourse
+        scoresOverTimeForCourse: _scoresOverTimeForCourse,
+        holeDifficulty: _holeDifficulty
     }
 });

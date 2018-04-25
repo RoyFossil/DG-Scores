@@ -14,6 +14,7 @@
             scope.leaderboards = [];
             scope.gameCount = 0;
             scope.medianGameDuration;
+            scope.medianScore;
             getAllGameUuids();
 
             //change the active tab, also run tab specific code, if it exists
@@ -61,6 +62,7 @@
                 }
                 charts.daysOfWeekForCourse($('#chart1'), scope.allGames);
                 charts.scoresOverTimeForCourse($('#chart2'), scope.allGames);
+                charts.holeDifficulty($('#chart3'), scope.allGames);
             }
 
             function getAllGameUuids(callback) {
@@ -86,13 +88,16 @@
                 }
 
                 var allDurations = [];
+                var allScores = [];
                 $.each(scope.allGameUuids, function (index, gameUuid) {
                     dataService.getGame(gameUuid).done(function (data) {
                         scope.allGames.push(data);
                         gameManip.getGameDuration(data);
                         allDurations.push(data.duration);
+                        Array.prototype.push.apply(allScores, data.players.map(x => x.scoreRelToPar));
                         if (allDurations.length == scope.allGameUuids.length) {
                             scope.medianGameDuration = gameManip.msToHoursAndMinutes(findMedian(allDurations));
+                            scope.medianScore = findMedian(allScores);
                             scope.allGames.sort(function (a, b) {
                                 return b.startedAt - a.startedAt;
                             });
@@ -124,6 +129,7 @@
                     scope.leaderboards.push(getLowestScores());
 
                     //Aces
+                    leaderboardLoaded = true;
                 }
 
             }
