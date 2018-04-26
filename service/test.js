@@ -182,6 +182,20 @@ MongoClient.connect(uri, function (err, client) {
         });
     });
 
+    //player uuid in
+    app.get('/getAllGameUuidsForPlayer/:uuid', function (req, res) {
+        db.collection("gamePlayers").aggregate([
+            {
+                $match: { playerUuid: req.params.uuid }
+            },
+            {
+                $project: { "gameUuid" : 1, "_id": 0 }
+            }
+        ]).toArray(function (err, arr) {
+            res.send(arr.map(x => x.gameUuid));
+        });
+    });
+
     app.get('/getAllGamesForPlayer/:uuid', function (req, res) {
         db.collection("gamePlayers").aggregate([
             {

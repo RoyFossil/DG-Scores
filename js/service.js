@@ -20,6 +20,12 @@ factory('dataService', function ($http) {
         })
     }
 
+    function _getAllGameUuidsForPlayer(id) {
+        return $.ajax({
+            url: urlBase + "/getAllGameUuidsForPlayer/" + id
+        })
+    }
+
     function _getAllGamesForPlayer(id) {
         return $.ajax({
             url: urlBase + "/getAllGamesForPlayer/" + id
@@ -132,6 +138,7 @@ factory('dataService', function ($http) {
         getPlayers: _getPlayers,
         getCourses: _getCourses,
         getGames: _getGames,
+        getAllGameUuidsForPlayer: _getAllGameUuidsForPlayer,
         getAllGamesForPlayer: _getAllGamesForPlayer,
         getBestGamesForPlayer: _getBestGamesForPlayer,
         getPlayer: _getPlayer,

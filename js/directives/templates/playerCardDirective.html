@@ -18,12 +18,12 @@
             <p class="card-text">Games played: {{player.numGamesPlayed}}</p>
             <p class="card-text">Games won: {{player.numGamesWon}}</p>
             <p class="card-text">Ratio: {{player.WLratio}}</p>
-            <p class="card-text">Most Played Course: {{player.courseCount[0].course.name}}</p>
+            <p class="card-text">Most Played Course: {{player.mostPlayedCourse.name}}</p>
             <a href="/games/{{player.mostRecentGameUuid}}" class="btn btn-primary">Most Recent Game</a>
         </div>
         <div ng-show="selectedTab == 'All Games'" class="container">
             <h3>{{player.name}}</h3>
-            <div class="container" ng-repeat="game in player.games" quick-look-game game="game" curr-player="player"></div>
+            <div class="container" ng-repeat="game in games" quick-look-game game="game" curr-player="player"></div>
         </div>
         <div ng-show="selectedTab == 'Best Games'" class="container">
             <h3>{{player.name}}</h3>
