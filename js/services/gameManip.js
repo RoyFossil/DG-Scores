@@ -26,10 +26,21 @@ factory('gameManip', function () {
         game.formatted_duration = msToHoursAndMinutes(game.duration);
     }
 
+    function _formatScore(score) {
+        if (score > 0) {
+            return '+' + score.toString();
+        } else if (score < 0) {
+            return score.toString();
+        } else {
+            return 'E';
+        }
+    }
+
 
     return {
         getGameDuration: _getGameDuration,
         //is this bad practice?
-        msToHoursAndMinutes: msToHoursAndMinutes
+        msToHoursAndMinutes: msToHoursAndMinutes,
+        formatScore: _formatScore
     }
 });

@@ -97,7 +97,7 @@
                         Array.prototype.push.apply(allScores, data.players.map(x => x.scoreRelToPar));
                         if (allDurations.length == scope.allGameUuids.length) {
                             scope.medianGameDuration = gameManip.msToHoursAndMinutes(findMedian(allDurations));
-                            scope.medianScore = findMedian(allScores);
+                            scope.medianScore = gameManip.formatScore(findMedian(allScores));
                             scope.allGames.sort(function (a, b) {
                                 return b.startedAt - a.startedAt;
                             });

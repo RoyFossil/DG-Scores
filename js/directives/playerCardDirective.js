@@ -1,4 +1,4 @@
-﻿angular.module('app.directives').directive('playerCard', ['dataService', function (dataService) {
+﻿angular.module('app.directives').directive('playerCard', ['charts', 'dataService', function (charts, dataService) {
     return {
         restrict: 'E',
         scope: {
@@ -35,9 +35,11 @@
                     initAllGames();
                 }
 
-                if (name == "Best Games") {
-                    initBestGames();
+                if (name == "Charts") {
+                    initCharts();
                 }
+
+
             }
 
             function initAllGames() {
@@ -174,11 +176,37 @@
                 }
             }
 
-            function initBestGames() {
-                /*dataService.getBestGamesForPlayer(scope.player.uuid).then(function (res) {
-                    scope.player.bestGames = res;
-                    scope.$apply();
-                })*/
+            function initCharts() {
+                if (scope.games.length == 0) {
+                    initAllGames(initCharts);
+                    return;
+                }
+                //days of week for player would be cool
+                //other thoughts... could do days of week for a specific year? allow user to select year, to see change
+                //maybe even fux with that diff pie chart. just some thoughts
+                charts.daysOfWeekForCourse($('#chart1'), scope.games);
+                charts.coursesPlayedCount($('#chart2'), scope.courses);
+                charts.numPeopleInGame($('#chart3'), scope.games);
+                charts.playersPlayedWith($('#chart4'), scope.games, scope.player.uuid);
+
+                //another great one per player, scores at course over time. just like the one on the courses page (with all the blue dots)
+                //could show improvement? actually. prolly better represented as a line chart. might be a little weird on days with double play?
+                //maybe just include time as well. 
+                //but make it something like.. default to fav course, then have dropdown for selecting course. showing multiple courses is a little overkill. 
+                //could be saved for a compare page.
+                charts.scoresOverTimeForPlayerAtCourse($('#chart5'), scope.games, scope.player.uuid, scope.player.mostPlayedCourse.uuid);
+
+                //another bite off the courseCard swag, prolly include the holeDifficulty chart.  avgs and pars and ish.
+                //not sure if this is viable........ but. a slider?? to show change??? no way. thats too much work.
+
+
+                //games per week chart? line? column? maybe per month instead of per week
+                //would look good on courseCard too
+
+                //pie chart of ace, bird, par, boge etc per player per course
+
+
+                //course difficulty ranking, based on median score probably?
             }
 
         }

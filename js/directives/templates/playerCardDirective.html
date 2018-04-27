@@ -10,6 +10,9 @@
             <li class="nav-item">
                 <span class="nav-link" ng-click="navItemClicked('Best Games')">Best Games</span>
             </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('Charts')">Charts</span>
+            </li>
         </ul>
     </div>
     <div class="card-block">
@@ -28,6 +31,36 @@
         <div ng-show="selectedTab == 'Best Games'" class="container">
             <h3>{{player.name}}</h3>
             <div class="container" ng-repeat="game in player.bestGames" quick-look-game game="game" curr-player="player"></div>
+        </div>
+        <div ng-show="selectedTab == 'Charts'" class="container">
+            <h3>{{player.name}}</h3>
+            <div id="chartsCarousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div id="chart1"></div>
+                    </div>
+                    <div class="carousel-item">
+                        <div id="chart2"></div>
+                    </div>
+                    <div class="carousel-item">
+                        <div id="chart3"></div>
+                    </div>
+                    <div class="carousel-item">
+                        <div id="chart4"></div>
+                    </div>
+                    <div class="carousel-item">
+                        <div id="chart5"></div>
+                    </div>
+                </div>
+                <a class="carousel-control-prev" data-target="#chartsCarousel" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="false"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" data-target="#chartsCarousel" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="false"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>

@@ -2,6 +2,7 @@
     
     google.charts.load('current', { 'packages': ['corechart', 'scatter'] });
 
+    //line chart showing players scores over the course of a game
     function _scoresRelToParForGame(elt, gameData) {
         if (elt instanceof jQuery) {
             elt = elt.get(0);
@@ -65,6 +66,7 @@
         chart.draw(data, options);
     }
 
+    //pie chart showing percent played on each day of the week
     function _daysOfWeekForCourse(elt, courseData) {
         if (elt instanceof jQuery) {
             elt = elt.get(0);
@@ -106,6 +108,7 @@
         chart.draw(data, options);
     }
 
+    //scatter chart with a point at each finished game score for a course
     function _scoresOverTimeForCourse(elt, courseScoresData) {
         if (elt instanceof jQuery) {
             elt = elt.get(0);
@@ -126,16 +129,65 @@
             }
         }
 
+        //so the trendline idea is dope, and for now it looks good for most courses, but down the line it wouldn't make much sense,
+        //at least on a course basis.  per person, it would be great all the time, as we assume people get better overtime
+
         var options = {
             title: 'Scores',
             width: 1000,
-            height: 600
+            height: 600/*,      
+            trendlines: {
+                0: {
+                    type: 'exponential'         
+                }
+            }*/
         }
 
         var chart = new google.visualization.ScatterChart(elt);
         chart.draw(data, options);
     }
 
+    function _scoresOverTimeForPlayerAtCourse(elt, gameData, playerUuid, courseUuid) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Date');
+        data.addColumn('number', 'Score');
+
+        for (var i = 0; i < gameData.length; i++) {
+            var aGame = gameData[i];
+            if (aGame.course.uuid == courseUuid) {
+                var aDate = new Date(parseInt(aGame.startedAt));
+                for (var j = 0; j < aGame.players.length; j++) {
+                    var aPlayer = aGame.players[j];
+                    if (aPlayer.uuid == playerUuid && aPlayer.holesPlayed == aGame.gameHoles.length) {
+                        data.addRow([aDate, aPlayer.scoreRelToPar]);
+                    }
+                }
+            }
+        }
+
+        //so the trendline idea is dope, and for now it looks good for most courses, but down the line it wouldn't make much sense,
+        //at least on a course basis.  per person, it would be great all the time, as we assume people get better overtime
+
+        var options = {
+            title: 'Scores',
+            width: 1000,
+            height: 600,      
+            trendlines: {
+                0: {
+                    type: 'exponential'         
+                }
+            }
+        }
+
+        var chart = new google.visualization.ScatterChart(elt);
+        chart.draw(data, options);
+    }
+
+    //scatter chart of par, avg, and every score at each whole for a course
     function _holeDifficulty(elt, holesData) {
         if (elt instanceof jQuery) {
             elt = elt.get(0);
@@ -199,10 +251,140 @@
         //chart.draw(data, google.charts.Scatter.convertOptions(options));
     }
 
+    //pie chart for courses played
+    function _coursesPlayedCount(elt, courseData) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Course');
+        data.addColumn('number', 'Count');
+
+        courseData.sort(function (a, b) {
+            return b.count - a.count;
+        });
+
+        for (var i = 0; i < courseData.length; i++) {
+            data.addRow([courseData[i].name, courseData[i].count]);
+        }
+
+        var options = {
+            title: 'Course Play Count',
+            pieSliceText: 'value',
+            //this should not be hard coded (width and height)
+            //it defaults to the size of the containing elt
+            width: 1000,
+            height: 500,
+            sliceVisibilityThreshold: .02
+        };
+
+        var chart = new google.visualization.PieChart(elt);
+        chart.draw(data, options);
+    }
+
+    //pie chart showing number of games played with X number of people
+    function _numPeopleInGame(elt, gameData) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Number of Players');
+        data.addColumn('number', 'Count');
+
+        var numPlayersTally = {};
+
+        for (var i = 0; i < gameData.length; i++) {
+            var numPlayers = gameData[i].players.length;
+            if (numPlayersTally[numPlayers]) {
+                numPlayersTally[numPlayers]++;
+            } else {
+                numPlayersTally[numPlayers] = 1;
+            }
+        }
+
+        var arrOfNumPlayers = Object.keys(numPlayersTally).map(x => parseInt(x)).sort();
+
+        for (var i = 0; i < arrOfNumPlayers.length; i++) {
+            var pString = arrOfNumPlayers[i] == 1 ? " player" : " players";
+            data.addRow([arrOfNumPlayers[i].toString() + pString, numPlayersTally[arrOfNumPlayers[i]]]);
+        }
+
+
+        var options = {
+            title: 'Games with X Number of Players (including self)',
+            pieSliceText: 'value',
+            //this should not be hard coded (width and height)
+            //it defaults to the size of the containing elt
+            width: 1000,
+            height: 500
+            //sliceVisibilityThreshold: .03
+        };
+
+        var chart = new google.visualization.BarChart(elt);
+        chart.draw(data, options);
+    }
+
+    //pie chart showing number of games played with each person
+    function _playersPlayedWith(elt, gameData, thePlayerUuid) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Player');
+        data.addColumn('number', 'Games Played');
+
+        var playersTally = {};
+
+        for (var i = 0; i < gameData.length; i++) {
+            for (var j = 0; j < gameData[i].players.length; j++) {
+                var playerUuid = gameData[i].players[j].uuid;
+                if (playerUuid != thePlayerUuid) {
+                    if (playersTally[playerUuid]) {
+                        playersTally[playerUuid].count++;
+                    } else {
+                        playersTally[playerUuid] = {
+                            count: 1,
+                            name: gameData[i].players[j].name
+                        };
+                    }
+                }
+            }
+        }
+
+        var arrPlayerUuids = Object.keys(playersTally).sort(function (a, b) {
+            return playersTally[b].count - playersTally[a].count;
+        });
+
+        for (var i = 0; i < arrPlayerUuids.length; i++) {
+            data.addRow([playersTally[arrPlayerUuids[i]].name, playersTally[arrPlayerUuids[i]].count]);
+        }
+
+
+        var options = {
+            title: 'Games Played With Player',
+            pieSliceText: 'value',
+            //this should not be hard coded (width and height)
+            //it defaults to the size of the containing elt
+            width: 1000,
+            height: 800/*,
+            sliceVisibilityThreshold: .01*/
+        };
+
+        var chart = new google.visualization.BarChart(elt);
+        chart.draw(data, options);
+    }
+
     return {
         scoresRelToParForGame: _scoresRelToParForGame,
         daysOfWeekForCourse: _daysOfWeekForCourse,
         scoresOverTimeForCourse: _scoresOverTimeForCourse,
-        holeDifficulty: _holeDifficulty
+        holeDifficulty: _holeDifficulty,
+        coursesPlayedCount: _coursesPlayedCount,
+        numPeopleInGame: _numPeopleInGame,
+        playersPlayedWith: _playersPlayedWith,
+        scoresOverTimeForPlayerAtCourse: _scoresOverTimeForPlayerAtCourse
     }
 });
