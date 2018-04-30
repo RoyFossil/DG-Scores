@@ -1,6 +1,8 @@
 ﻿angular.module('app.services').
 factory('gameManip', function () {
 
+    //maybe gameManip is a bad name...
+
     function msToHoursAndMinutes(ms) {
         var timeString = "";
         var hours = Math.floor(ms / 3600000);
@@ -37,10 +39,43 @@ factory('gameManip', function () {
     }
 
 
+    function _getScoreNameFromDiff(diff) {
+        switch (diff) {
+            case -4:
+                return "Condor";
+            case -3:
+                return "Albatross";
+            case -2:
+                return "Eagle";
+            case -1:
+                return "Birdie";
+            case 0:
+                return "Par";
+            case 1:
+                return "Bogey";
+            case 2:
+                return "Double Bogey";
+            case 3:
+                return "Triple Bogey";
+            default:
+                return "4+ over";
+        }
+    }
+
+    function _getScoreName(par, score) {
+        if (score == 1) {
+            return "Ace";
+        }
+        return _getScoreNameFromDiff(score - par);
+    }
+
+
     return {
         getGameDuration: _getGameDuration,
         //is this bad practice?
         msToHoursAndMinutes: msToHoursAndMinutes,
-        formatScore: _formatScore
+        formatScore: _formatScore,
+        getScoreName: _getScoreName,
+        getScoreNameFromDiff: _getScoreNameFromDiff
     }
 });

@@ -128,6 +128,11 @@
                     //Lowest Score
                     scope.leaderboards.push(getLowestScores());
 
+                    //consecutive birds?  kind of a weird one.  what if someone goes bird ace bird. is that not then consecutive birds? i mean technically..
+                    scope.leaderboards.push(getConsecutiveScores(-1));
+                    //consecutive pars
+                    scope.leaderboards.push(getConsecutiveScores(0));
+
                     //Aces
                     leaderboardLoaded = true;
                 }
@@ -233,6 +238,105 @@
 
             function checkLowScoreDupe(a, b) {
                 return a.name == b.name && a.score == b.score;
+            }
+
+            function getConsecutiveScores(score) {
+                var consecutiveScores = {
+                    title: "Consecutive " + gameManip.getScoreNameFromDiff(score),
+                    items: []
+                };
+
+                console.log(scope.allGames);
+
+                var bigStreakArr = [];
+                for (var i = 0; i < scope.allGames.length; i++) {
+                    //loop through all games
+                    var aGame = scope.allGames[i];
+
+                    var streakContainer = {};
+                    var streakArr = [];
+
+                    for (var j = 0; j < aGame.gameHoles.length; j++) {
+                        //loop through each hole
+                        var aGameHole = aGame.gameHoles[j];
+                        for (var k = 0; k < aGameHole.scores.length; k++) {
+                            //loop through each score
+                            var aScore = aGameHole.scores[k];
+                            //check if its an instance of our score
+                            if (aScore.score - aGameHole.par == score) {
+                                //it is our score of interest
+
+                                //check if an entry exists
+                                if (streakContainer[aScore.gamePlayerUuid]) {
+                                    //entry does exist, check if player is on a streak
+                                    var streakObj = streakContainer[aScore.gamePlayerUuid];
+                                    if (streakObj.isOnStreak) {
+                                        //player is on a streak, add one to streak and continue
+                                        streakObj.count++;
+                                    } else {
+                                        //player is not on a streak, overwrite old streakObj
+                                        streakContainer[aScore.gamePlayerUuid] = {
+                                            isOnStreak: true,
+                                            count: 1
+                                        }
+                                    }
+                                } else {
+                                    //entry does not exist, create one
+                                    streakContainer[aScore.gamePlayerUuid] = {
+                                        isOnStreak: true,
+                                        count: 1
+                                    }
+                                }
+
+                            } else {
+                                //its not our score of interest
+
+                                //check if an entry exists
+                                if (streakContainer[aScore.gamePlayerUuid]) {
+                                    //entry does exist, check if on streak
+                                    var streakObj = streakContainer[aScore.gamePlayerUuid];
+                                    if (streakObj.isOnStreak) {
+                                        //end the streak because this wasn't a score of interest
+                                        streakObj.isOnStreak = false;
+                                        streakArr.push({
+                                            gamePlayerUuid: aScore.gamePlayerUuid,
+                                            count: streakObj.count,
+                                            gameUuid: aGame.uuid
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //have now looped through every hole and collected our streak objs
+                    //before we ditch this game we should grab the player name
+                    for (var j = 0; j < streakArr.length; j++) {
+                        for (var k = 0; k < aGame.players.length; k++) {
+                            if (streakArr[j].gamePlayerUuid == aGame.players[k].gamePlayerUuid) {
+                                streakArr[j].name = aGame.players[k].name;
+                                break;
+                            }
+                        }
+                    }
+
+                    //make a huge list then sort it? prolly better to just hold on to the top 3 throughout... 
+                    bigStreakArr = bigStreakArr.concat(streakArr);
+
+                }
+                //done with all games
+                bigStreakArr.sort(function (a, b) {
+                    return b.count - a.count;
+                });
+
+                for (var i = 0; i < 3 && i<bigStreakArr.length; i++) {
+                    consecutiveScores.items.push({
+                        name: bigStreakArr[i].name,
+                        info: bigStreakArr[i].count,
+                        href: "/games/" + bigStreakArr[i].gameUuid
+                    });
+                }
+
+                return consecutiveScores;
             }
 
             function findMedian(arr) {

@@ -13,6 +13,9 @@
             <li class="nav-item">
                 <span class="nav-link" ng-click="navItemClicked('Charts')">Charts</span>
             </li>
+            <li class="nav-item">
+                <span class="nav-link" ng-click="navItemClicked('SuperGames')">SuperGames</span>
+            </li>
         </ul>
     </div>
     <div class="card-block">
@@ -51,6 +54,9 @@
                     <div class="carousel-item">
                         <div id="chart5"></div>
                     </div>
+                    <div class="carousel-item">
+                        <div id="chart6"></div>
+                    </div>
                 </div>
                 <a class="carousel-control-prev" data-target="#chartsCarousel" role="button" data-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="false"></span>
@@ -60,6 +66,23 @@
                     <span class="carousel-control-next-icon" aria-hidden="false"></span>
                     <span class="sr-only">Next</span>
                 </a>
+            </div>
+            <div id="course-select-container">
+                <select id="courseSelect">
+                    <option value="0">All courses</option>
+                    <option ng-repeat="course in courses" value="{{course.uuid}}">{{course.name}}</option>
+                </select>
+            </div>
+        </div>
+        <div ng-show="selectedTab == 'SuperGames'" class="container">
+            <h3>{{player.name}}</h3>
+            <div id="course-select-container">
+                <select id="courseSelectSG">
+                    <option ng-repeat="course in courses" value="{{course.uuid}}">{{course.name}}</option>
+                </select>
+            </div>
+            <div>
+                <score-card game="superGame"></score-card>
             </div>
         </div>
     </div>

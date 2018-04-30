@@ -1,4 +1,4 @@
-﻿angular.module('app.directives').directive('playerCard', ['charts', 'dataService', function (charts, dataService) {
+﻿angular.module('app.directives').directive('playerCard', ['charts', 'gameManip', 'dataService', function (charts, gameManip, dataService) {
     return {
         restrict: 'E',
         scope: {
@@ -12,6 +12,7 @@
                     scope.games = [];
                     scope.courses = [];
                     scope.gameUuids = [];
+                    scope.superGame = {};
                     initAllGames();
                 }
             });
@@ -39,6 +40,9 @@
                     initCharts();
                 }
 
+                if (name == "SuperGames") {
+                    initSuperGames();
+                }
 
             }
 
@@ -176,6 +180,13 @@
                 }
             }
 
+            function initCourseSpecificCharts() {
+                var selectedCourseUuid = $('#courseSelect')[0].value;
+                charts.scoresOverTimeForPlayerAtCourse($('#chart5'), scope.games, scope.player.uuid, selectedCourseUuid);
+                charts.scoreBreakdownForPlayerAtCourse($('#chart6'), scope.games, scope.player.uuid, selectedCourseUuid);
+
+            }
+
             function initCharts() {
                 if (scope.games.length == 0) {
                     initAllGames(initCharts);
@@ -189,13 +200,9 @@
                 charts.numPeopleInGame($('#chart3'), scope.games);
                 charts.playersPlayedWith($('#chart4'), scope.games, scope.player.uuid);
 
-                //another great one per player, scores at course over time. just like the one on the courses page (with all the blue dots)
-                //could show improvement? actually. prolly better represented as a line chart. might be a little weird on days with double play?
-                //maybe just include time as well. 
-                //but make it something like.. default to fav course, then have dropdown for selecting course. showing multiple courses is a little overkill. 
-                //could be saved for a compare page.
-                charts.scoresOverTimeForPlayerAtCourse($('#chart5'), scope.games, scope.player.uuid, scope.player.mostPlayedCourse.uuid);
+                $('#courseSelect')[0].addEventListener("change", initCourseSpecificCharts);
 
+                initCourseSpecificCharts();
                 //another bite off the courseCard swag, prolly include the holeDifficulty chart.  avgs and pars and ish.
                 //not sure if this is viable........ but. a slider?? to show change??? no way. thats too much work.
 
@@ -203,10 +210,136 @@
                 //games per week chart? line? column? maybe per month instead of per week
                 //would look good on courseCard too
 
-                //pie chart of ace, bird, par, boge etc per player per course
-
 
                 //course difficulty ranking, based on median score probably?
+            }
+            $('#courseSelectSG')[0].addEventListener("change", initSuperGames);
+            function initSuperGames() {
+                scope.superGame = {};
+                var selectedCourseUuid = $('#courseSelectSG')[0].value;
+                var player = {
+                    name: scope.player.name,
+                    //this is a made up game player, just need this in here for reference
+                    gamePlayerUuid: "superman",
+                    totalScore: 0
+                };
+
+                //pull in player
+                scope.superGame.players = [player];
+
+                //pull in course
+                var course = {};
+
+                var gameHoles = {};
+                var scores = {};
+
+                //pull in course holes... how to determine which par to take? prolly the one that is matched with the lowest score
+                for (var i = 0; i < scope.games.length; i++) {
+                    //loop through every game
+                    var aGame = scope.games[i];
+
+                    if (aGame.course.uuid == selectedCourseUuid) {
+                        //only look at the selected course
+                        //update course name
+                        course.name = aGame.course.name;
+
+                        //get actual gamePlayerUuid for this player on this course
+                        var gamePlayerUuid;
+                        for (var j = 0; j < aGame.players.length; j++) {
+                            if (aGame.players[j].uuid == scope.player.uuid) {
+                                gamePlayerUuid = aGame.players[j].gamePlayerUuid;
+                            }
+                        }
+
+
+                        for (var j = 0; j < aGame.gameHoles.length; j++) {
+                            //loop through each gamehole
+                            var aGameHole = aGame.gameHoles[j];
+                            for (var k = 0; k < aGameHole.scores.length; k++) {
+                                //loop through each score
+                                var aScore = aGameHole.scores[k];
+                                if (aScore.gamePlayerUuid == gamePlayerUuid) {
+                                    //only care about scores from this player
+
+                                    //logic
+
+                                    //check to see if this hole has an entry already
+                                    if (scores[aGameHole.hole]) {
+                                        //if it does, compare scores
+                                        if (scores[aGameHole.hole].score > aScore.score) {
+                                            //this new score is better, take these objs
+                                            gameHoles[aGameHole.hole] = {
+                                                hole: aGameHole.hole,
+                                                par: aGameHole.par
+                                            }
+                                            scores[aGameHole.hole] = {
+                                                gamePlayerUuid: player.gamePlayerUuid,
+                                                score: aScore.score
+                                            }
+                                        }
+                                    } else {
+                                        //if it doesn't, add entries (carefully)
+                                        gameHoles[aGameHole.hole] = {
+                                            //don't want to take the whole object, just a few important attrs
+                                            hole: aGameHole.hole,
+                                            par: aGameHole.par
+                                        }
+
+                                        scores[aGameHole.hole] = {
+                                            gamePlayerUuid: player.gamePlayerUuid,
+                                            score: aScore.score
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //have gameHoles, scores.  now need to add them to superGame obj
+                scope.superGame.course = course;
+                scope.superGame.course.totalPar = 0;
+
+                //create sorted list of hole numbers
+                var sortedGameHolesArr = Object.keys(gameHoles).map(x => parseInt(x)).sort(function (a, b) {
+                    return a - b;
+                });
+                scope.superGame.gameHoles = [];
+
+                var prevScoreRelToPar = 0;
+                for (var i = 0; i < sortedGameHolesArr.length; i++) {
+                    //get this specific game hole
+                    var thisGameHole = gameHoles[sortedGameHolesArr[i]];
+                    //prep the scores arr
+                    thisGameHole.scores = [];
+
+                    //increment total par for course
+                    scope.superGame.course.totalPar += thisGameHole.par;
+
+                    //get specific score
+                    var thisScore = scores[sortedGameHolesArr[i]];
+                    //increment player total score
+                    scope.superGame.players[0].totalScore += thisScore.score;
+
+                    //calculate running scoreRelToPar
+                    thisScore.scoreRelToPar = prevScoreRelToPar + (thisScore.score - thisGameHole.par);
+                    //save for next hole
+                    prevScoreRelToPar = thisScore.scoreRelToPar;
+                    //get formatted score
+                    thisScore.formattedScoreRelToPar = gameManip.formatScore(thisScore.scoreRelToPar);
+
+                    //push the score to the hole
+                    thisGameHole.scores.push(thisScore);
+
+                    //push the hole to the game
+                    scope.superGame.gameHoles.push(thisGameHole);
+                }
+
+                //get player final score formatted
+                scope.superGame.players[0].formattedScore = gameManip.formatScore(scope.superGame.players[0].totalScore - scope.superGame.course.totalPar);
+
+                scope.$broadcast("SuperGameChanged", scope.superGame);
             }
 
         }

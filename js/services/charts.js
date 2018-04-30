@@ -1,4 +1,4 @@
-﻿angular.module('app.services').factory('charts', function () {
+﻿angular.module('app.services').factory('charts', ['gameManip', function (gameManip) {
     
     google.charts.load('current', { 'packages': ['corechart', 'scatter'] });
 
@@ -147,6 +147,7 @@
         chart.draw(data, options);
     }
 
+    //scatter chart with a point at each finished game score for a player at a course (or at all courses)
     function _scoresOverTimeForPlayerAtCourse(elt, gameData, playerUuid, courseUuid) {
         if (elt instanceof jQuery) {
             elt = elt.get(0);
@@ -158,7 +159,7 @@
 
         for (var i = 0; i < gameData.length; i++) {
             var aGame = gameData[i];
-            if (aGame.course.uuid == courseUuid) {
+            if (aGame.course.uuid == courseUuid || courseUuid == 0) {
                 var aDate = new Date(parseInt(aGame.startedAt));
                 for (var j = 0; j < aGame.players.length; j++) {
                     var aPlayer = aGame.players[j];
@@ -377,6 +378,95 @@
         chart.draw(data, options);
     }
 
+    function getSliceColorOption(scoreName) {
+        switch (scoreName) {
+            case "Ace":
+                return { color: 'deeppink' };
+            case "Birdie":
+                return { color: 'dodgerblue' };
+            case "Par":
+                return { color: 'limegreen' };
+            case "Bogey":
+                return { color: '#5BD75B' };
+            case "Double Bogey":
+                return { color: '#84E184' };
+            case "Triple Bogey":
+                return { color: '#ADEBAD' };
+            case "4+ over":
+                return { color: 'lightgrey' };
+            default:
+                return {};
+        }
+    }
+
+    //pie chart for bird, par, boge blah
+    function _scoreBreakdownForPlayerAtCourse(elt, gameData, playerUuid, courseUuid) {
+        if (elt instanceof jQuery) {
+            elt = elt.get(0);
+        }
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Score');
+        data.addColumn('number', 'Score');
+
+        var scoreNamesTally = {};
+
+        for (var i = 0; i < gameData.length; i++) {
+            //loop through all games
+            var aGame = gameData[i];
+            if (aGame.course.uuid == courseUuid || courseUuid == 0) {
+                //only tally if its at the selected course, or all courses is selected
+
+                //get gamePlayerUuid for each game
+                var gamePlayerUuid;
+                for (var j = 0; j < aGame.players.length; j++) {
+                    if (aGame.players[j].uuid == playerUuid) {
+                        gamePlayerUuid = aGame.players[j].gamePlayerUuid;
+                    }
+                }
+
+                for (var j = 0; j < aGame.gameHoles.length; j++) {
+                    var aGameHole = aGame.gameHoles[j];
+                    for (var k = 0; k < aGameHole.scores.length; k++) {
+                        var aScore = aGameHole.scores[k];
+                        if (aScore.gamePlayerUuid == gamePlayerUuid) {
+                            //only pull in scores for that player
+                            var scoreName = gameManip.getScoreName(aGameHole.par, aScore.score);
+                            if (scoreNamesTally[scoreName]) {
+                                scoreNamesTally[scoreName]++;
+                            } else {
+                                scoreNamesTally[scoreName] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        var names = ["Ace", "Condor", "Albatross", "Eagle", "Birdie", "Par", "Bogey", "Double Bogey", "Triple Bogey", "4+ over"];
+        var sliceCount = 0;
+        var slicesOptions = [];
+        for (var i = 0; i < names.length; i++) {
+            if (scoreNamesTally[names[i]]) {
+                data.addRow([names[i], scoreNamesTally[names[i]]]);
+                sliceCount++;
+                slicesOptions.push(getSliceColorOption(names[i]));
+            }
+        }
+
+
+        var options = {
+            title: 'Scores Breakdown',
+            width: 1000,
+            height: 600,
+            sliceVisibilityThreshold: 0,
+            slices: slicesOptions
+        }
+
+        var chart = new google.visualization.PieChart(elt);
+        chart.draw(data, options);
+    }
+
     return {
         scoresRelToParForGame: _scoresRelToParForGame,
         daysOfWeekForCourse: _daysOfWeekForCourse,
@@ -385,6 +475,7 @@
         coursesPlayedCount: _coursesPlayedCount,
         numPeopleInGame: _numPeopleInGame,
         playersPlayedWith: _playersPlayedWith,
-        scoresOverTimeForPlayerAtCourse: _scoresOverTimeForPlayerAtCourse
+        scoresOverTimeForPlayerAtCourse: _scoresOverTimeForPlayerAtCourse,
+        scoreBreakdownForPlayerAtCourse: _scoreBreakdownForPlayerAtCourse
     }
-});
+}]);
